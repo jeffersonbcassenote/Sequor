@@ -39,11 +39,22 @@ body{
 
 
 .card{
-  
   background-color: darkgray;
   width: 100%;
-  color: aqua;
+  padding-top: 5px !important;
+  padding-left: 10px !important;
 }
+.ctnCcard{
+  background-color: darkgray;
+  width: 98%;
+  min-height: 50px;
+  
+}
+
+.cardEstrela{
+  padding: 0px !important;
+}
+
 
 .usuarioNome{
   padding: 10px;
@@ -83,4 +94,31 @@ body{
 }
 .txtLogin{
   width: 80%;
+}
+.link{
+  margin: 0;
+    color: #1976d2;
+    -webkit-text-decoration: underline;
+    text-decoration: underline;
+    text-decoration-color: rgba(25, 118, 210, 0.4);
+}
+.link:hover{
+  text-decoration-color: inherit;
+  cursor: pointer
+}
+.lblDescricao{
+  font-size: 10px;
+  height: 10px;
+  display: block;
+  padding-top: 5px;
+
+}
+.lblRepositorio{
+  font-size: 15px;
+}
+.lblEstrela{
+  padding: 15px 0px 3px 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 9px;
+  color: black;
 }

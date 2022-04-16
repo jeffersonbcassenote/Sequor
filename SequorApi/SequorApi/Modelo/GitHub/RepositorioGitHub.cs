@@ -16,7 +16,7 @@ namespace SequorApi.Modelo.GitHub
         public string url { get; set; }
         public string forks_url { get; set; }
         public string keys_url { get; set; }
-        public string collaborators_url { get; set; }
+        public string collaborators_url { get; set; }   
         public string teams_url { get; set; }
         public string hooks_url { get; set; }
         public string issue_events_url { get; set; }

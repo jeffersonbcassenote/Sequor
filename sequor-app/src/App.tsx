@@ -4,6 +4,9 @@ import './App.css';
 import { Avatar, Button, Card, CardActions, CardContent, Container, Grid, Link, TextField, Typography } from '@mui/material';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toast';
+import {  defer  } from 'rxjs';
+import {  map  } from 'rxjs/operators';
+
 
 
 function App() {
@@ -19,40 +22,40 @@ function App() {
 
   const urlBase = "https://localhost:44329/api/v1/PerfilGitHub"
 
-  const pesquisar = async ()=>{
 
-    const params = new URLSearchParams([['login', valorPesquisa]]);
+   const pesquisar = async () =>{
+    
+     const params = new URLSearchParams([['login', valorPesquisa]]);
 
-    await axios.get(urlBase,{ params }).then(
-      response =>{
-        if( response.data.sucesso === true){
+     const resquest = axios.get(urlBase,{ params })
 
-          setUsuario(response.data.data);
-          
-          if(typeof  response.data.data.twitter  !==  'undefined'  && response.data.data.twitter != null && response.data.data.twitter !== '' )
-            handleTwitterClick();
+     const observable = defer(()=> resquest ).pipe( map(result => result ));
 
-          if(typeof  response.data.data.blog  !==  'undefined'  && response.data.data.blog != null && response.data.data.blog !== '' )
-            window.open(response.data.data.blog, "_blank");
-          
-        }
-        else
-        {
-          toast.info( valorPesquisa  + ' não possui perfil no GitHub' );
-          console.log('não encontado');
-          setUsuario( undefined ) 
-        }
+     observable.subscribe( response => {
+     
+       if( response.data.sucesso === true){
+         setUsuario(response.data.data);
+         
+        if(typeof  response.data.data.twitter  !==  'undefined'  && response.data.data.twitter != null && response.data.data.twitter !== '' )
+          handleTwitterClick(response.data.data.twitter);
+
+        if(typeof  response.data.data.blog  !==  'undefined'  && response.data.data.blog != null && response.data.data.blog !== '' )
+          window.open(response.data.data.blog, "_blank");
         
+      }
+      else
+      {
+        toast.info( valorPesquisa  + ' não possui perfil no GitHub' );
+        console.log('não encontado');
+        setUsuario( undefined ) 
+       }
 
-      }).catch(error => { 
-        toast.error('ocorreu um erro.' );
-         setUsuario(undefined )
+        }  );
+   }
 
-      });
-  }
 
-  const handleTwitterClick = () => {
-    window.open("http://twitter.com/" + usuario?.twitter );
+  const handleTwitterClick = (usuarioTwitter) => {
+    window.open("http://twitter.com/" + usuarioTwitter );
   };
 
   interface Provider {
@@ -105,7 +108,7 @@ function App() {
                      <Link  className="detalhaUsuario" href={usuario?.blog}  target="_blank" >{usuario?.blog}</Link>
                   </Grid>
                   <Grid item xs={12}>
-                    <label className='detalhaUsuario'onClick={()=> {handleTwitterClick();}}> {usuario?.twitter} </label>
+                    <label className='detalhaUsuario link'onClick={()=> {handleTwitterClick(usuario?.twitter);}}> {usuario?.twitter} </label>
                   </Grid>
       </Grid>
       <Grid item xs={12} md={9} className="ctnCard">
@@ -114,17 +117,17 @@ function App() {
       <Grid container  spacing={2}  >
                         { usuario?.listaRepositorio.map((repos, index)=> ( 
                           <Grid key={index}  item xs={4} md={4}>
-                                            <Card  className="card">
+                                            <Card  className="ctnCcard">
                                               <CardContent className="card" >
                                                   <Typography variant="h5" component="div">
-                                                      <Link  href={ repos.url} target="_blank" > {repos.nome}</Link>
+                                                      <Link className="lblRepositorio" href={ repos.url} target="_blank" > {repos.nome}</Link>
                                                   </Typography>
-                                              <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                                                { repos.nome}
+                                              <Typography  color="text.secondary">
+                                                <label className="lblDescricao" >    {  repos?.descricao }  </label>
                                               </Typography>
                                               </CardContent>
-                                              <CardActions className="card">
-                                                <Button size="small"> { repos.estrela} Estrela</Button>
+                                              <CardActions className="cardEstrela"  >
+                                                <label className="lblEstrela" > { repos.estrela} ESTRELA </label>
                                               </CardActions>
                                             </Card>
                                     </Grid>

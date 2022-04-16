@@ -23,7 +23,8 @@ namespace SequorApi.Suporte
             CreateMap<RepositorioGitHub, RepositorioGitDTO>()
                 .ForMember(dest => dest.Url, map => map.MapFrom(scr => scr.html_url))
                 .ForMember(dest => dest.Nome, map => map.MapFrom(scr => scr.name))
-                .ForMember(dest => dest.Estrela, map => map.MapFrom(scr => scr.stargazers_count)).ReverseMap();
+                .ForMember(dest => dest.Estrela, map => map.MapFrom(scr => scr.stargazers_count))
+                .ForMember(dest => dest.Descricao, map => map.MapFrom(scr => scr.description)).ReverseMap();
         }
     }
 }

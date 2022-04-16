@@ -5,5 +5,7 @@
         public string Url { get; set; }
         public string Nome { get; set; }
         public int Estrela { get; set; }
+        public string Descricao { get; set; }
+            
     }
 }
