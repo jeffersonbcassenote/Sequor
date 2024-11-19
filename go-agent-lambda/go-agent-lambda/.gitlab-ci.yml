@@ -1,0 +1,35 @@
+## Imports
+include:
+  - project: "zenvia/devops/ci-templates"
+    ref: "main"
+    file:
+      - "serviceGoBackendServerlessAws.yml"
+
+## Vars
+variables:
+  VAR_GO_IMAGE: "golang:1.16-alpine"
+  VAR_SERVERLESS_IMAGE: 'amaysim/serverless:2.72.1'
+
+  ## Test Vars
+  GO_TEST_CMD: "go test -v ./..."
+
+  ## Veracode Vars
+  # VERACODE_TEAM_SQUAD: "VERACODE_SERVICE"
+  # VAR_VERACODE_SLUG: "eppFDOd9"
+  VAR_JIRA_PROJECT_KEY: ""
+
+  ## Serverless
+  VAR_SERVERLESS_CMD_INSTALL_PLUGINS: 'serverless plugin install --name serverless-vpc-discovery'
+  ## Serverless STG
+  VAR_SERVERLESS_STAGE_NAME_STG: 'stg'
+  ## Serverless PRD
+  VAR_SERVERLESS_STAGE_NAME_PRD: 'prod'
+
+## Custom Jobs
+
+build:
+  script:
+    - apk add --no-cache git
+    - !reference [.go-util, git-config-gitlab-private-go-packages]
+    - go mod download
+    - env GOARCH=amd64 GOOS=linux go build -v -ldflags="-s -w" -o bin/agent agent/main.go

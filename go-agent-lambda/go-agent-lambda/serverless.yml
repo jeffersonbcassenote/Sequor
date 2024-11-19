@@ -1,0 +1,99 @@
+app: go-agent-lambda
+service: go-agent-lambda
+frameworkVersion: '2'
+
+plugins:
+  - serverless-vpc-discovery
+custom:
+  vpcDiscovery:
+    #TODO: Fix it - 2024-01-17 - STG - VPC with name principal doesn't exist in account 903602041819 and region us-east-1
+    vpcName: principal
+    subnets:
+        - tagKey: subnet_principal_private
+          tagValues:
+          - 'true'        
+    securityGroups:
+      - tagKey: sg_for_lambda_db
+        tagValues: 
+          - 'true'
+          
+  myStage: ${opt:stage, self:provider.stage}
+  myEnvironment:
+    REGION:
+      prod: us-east-1
+      stg: us-east-1
+    DB_SECRET_KEY: 
+      prod: prod/MoviDesk/MSSQL
+      stg: staging/MoviDesk/MSSQL
+    DB_SECRET_KEY_PG:
+      prod: staging/rds/movidesk
+      stg: staging/rds/movidesk
+    RABBITMQ_SECRET_KEY: 
+      prod: prod/RabbitMQ
+      stg: staging/RabbitMQ
+    SECRET_MANAGER_ENDPOINT: 
+      prod: https://secretsmanager.us-east-1.amazonaws.com
+      stg: https://secretsmanager.us-east-1.amazonaws.com
+    IAMROLERESOURCEDB:
+      prod: "arn:aws:secretsmanager:us-east-1:452117901698:secret:prod/MoviDesk/MSSQL-6M7hI8"
+      stg: "" # Fill this value
+      ## The old STG value (that was used with stage dev) is bellow:
+      # dev: "arn:aws:secretsmanager:us-west-2:452117901698:secret:staging/MoviDesk/MSSQL-V7vgW0"
+    IAMROLERESOURCEDBPG:
+      prod: "arn:aws:secretsmanager:us-west-2:452117901698:secret:staging/rds/movidesk-mONuvf"
+      stg: "" # Fill this value
+      ## The old STG value (that was used with stage dev) is bellow:
+      # dev: "arn:aws:secretsmanager:us-west-2:452117901698:secret:staging/rds/movidesk-mONuvf"
+    IAMROLERESOURCERABBIT:
+      prod: "arn:aws:secretsmanager:us-east-1:452117901698:secret:prod/RabbitMQ-7k0kl9"
+      stg: "" # Fill this value
+      ## The old STG value (that was used with stage dev) is bellow:
+      # dev: "arn:aws:secretsmanager:us-west-2:452117901698:secret:staging/RabbitMQ-j6RVPF"
+    MOVIDESK_SESSION_UNLEASH_NAME:
+      prod: "movidesk"
+      stg: "movidesk"
+    MOVIDESK_SESSION_UNLEASH_URL:
+      prod: "https://unleash.app.movidesktest.com/api/"
+      stg: "https://unleash.app.movidesktest.com/api/"
+
+provider:
+  name: aws
+  runtime: go1.x
+  lambdaHashingVersion: 20201221
+  stage: stg
+  region: ${self:custom.myEnvironment.REGION.${self:custom.myStage}}
+  iam: 
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "secretsmanager:GetSecretValue"
+          Resource: 
+            - ${self:custom.myEnvironment.IAMROLERESOURCEDB.${self:custom.myStage}}
+            - ${self:custom.myEnvironment.IAMROLERESOURCEDBPG.${self:custom.myStage}}
+            - ${self:custom.myEnvironment.IAMROLERESOURCERABBIT.${self:custom.myStage}}
+  environment:
+    DB_SECRET_KEY: ${self:custom.myEnvironment.DB_SECRET_KEY.${self:custom.myStage}}
+    DB_SECRET_KEY_PG: ${self:custom.myEnvironment.DB_SECRET_KEY_PG.${self:custom.myStage}}
+    RABBITMQ_SECRET_KEY: ${self:custom.myEnvironment.RABBITMQ_SECRET_KEY.${self:custom.myStage}}
+    SECRET_MANAGER_ENDPOINT: ${self:custom.myEnvironment.SECRET_MANAGER_ENDPOINT.${self:custom.myStage}}
+    REGION: ${self:custom.myEnvironment.REGION.${self:custom.myStage}}
+
+functions:
+  getagentstickets:
+    handler: bin/agent
+    timeout: 20
+    events:
+      - sqs:
+          batchSize: 1
+          arn:
+            Fn::GetAtt:
+              - DeletedAgent
+              - Arn
+              
+resources:
+  Resources:
+    DeletedAgent:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "DeletedAgent"
